@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">⚡ DevPulse MCP</h1>
+  <h1 align="center">DevPulse MCP</h1>
   <p align="center">
     <strong>The MCP server that gives AI editors eyes.</strong><br>
     Docker logs. Postgres schema. Snowflake. Git history. Test results. Screenshots.<br>
@@ -18,100 +18,100 @@
 
 ## The Problem
 
-AI code editors are incredible at writing code. They're **completely blind** to what happens when that code runs.
+AI code editors are incredible at writing code. They are completely blind to what happens when that code runs.
 
 ```
-9:41 AM — Cursor writes a new API endpoint
-9:42 AM — You run it locally. Container crashes immediately.
-9:42 AM — Cursor: "The code looks correct to me."
-9:42 AM — You, manually: docker logs... oh, missing DB column.
-           15 minutes of context switching. Again.
+9:41 AM  Cursor writes a new API endpoint
+9:42 AM  You run it locally. Container crashes immediately.
+9:42 AM  Cursor: "The code looks correct to me."
+9:42 AM  You, manually: docker logs... oh, missing DB column.
+          15 minutes of context switching. Again.
 ```
 
-This happens **10-20 times per day**. Each switch costs 5-15 minutes. That's **2-5 hours of daily friction** that has nothing to do with building product.
+This happens 10-20 times per day. Each switch costs 5-15 minutes. That is 2-5 hours of daily friction that has nothing to do with building product.
 
 ## The Solution
 
 DevPulse is a [Model Context Protocol](https://modelcontextprotocol.io) server that connects your AI editor directly to your runtime infrastructure.
 
 ```
-┌─────────────┐     stdio/SSE     ┌──────────────────┐
-│  AI Editor   │ ◄──────────────► │  DevPulse MCP    │
-│  (Cursor,    │                   │  Server          │
-│  Claude,     │                   │                  │
-│  Windsurf)   │                   │  Docker API      │
-└─────────────┘                   │  PostgreSQL      │
-                                  │  Snowflake       │
-                                  │  Git CLI         │
-                                  │  Test Runners    │
-                                  │  Cloudinary      │
-                                  └──────────────────┘
++-----------------+     stdio/SSE     +------------------+
+|   AI Editor     | <---------------> |  DevPulse MCP    |
+|   (Cursor,      |                   |  Server          |
+|   Claude,       |                   |                  |
+|   Windsurf)     |                   |  Docker API      |
++-----------------+                   |  PostgreSQL      |
+                                      |  Snowflake       |
+                                      |  Git CLI         |
+                                      |  Test Runners    |
+                                      |  Cloudinary      |
+                                      +------------------+
 ```
 
-The AI doesn't need to know **how** to query Docker or Postgres. It just sees a list of tools with descriptions. It calls them like function calls.
+The AI does not need to know how to query Docker or Postgres. It just sees a list of tools with descriptions. It calls them like function calls.
 
 ---
 
 ## Features
 
-### 🐳 DevOps Bridge
+### DevOps Bridge
 
-| Tool | What it does | When you'd use it |
-|------|-------------|-------------------|
+| Tool | Description | Use Case |
+|------|-------------|----------|
 | `get_container_logs` | Stream stdout/stderr from any Docker container | Container crashes, startup errors |
-| `inspect_db_schema` | Full Postgres/SQLite/MySQL schema | Missing columns, type mismatches |
-| `inspect_snowflake_schema` | Snowflake INFORMATION_SCHEMA | Data pipeline debugging |
-| `get_system_health` | CPU, RAM, disk usage | Build failures from OOM |
-| `restart_service` | Restart Docker containers | After fixing a config issue |
+| `inspect_db_schema` | Full Postgres/SQLite/MySQL schema introspection | Missing columns, type mismatches |
+| `inspect_snowflake_schema` | Snowflake INFORMATION_SCHEMA queries | Data pipeline debugging |
+| `get_system_health` | CPU, RAM, disk usage monitoring | Build failures from OOM |
+| `restart_service` | Restart Docker containers (with confirmation) | After fixing a config issue |
 
-### 🧬 GitPulse
+### GitPulse
 
-| Tool | What it does | When you'd use it |
-|------|-------------|-------------------|
-| `get_recent_diff_context` | Diffs formatted for LLM context | "What changed recently?" |
-| `find_expert_for_file` | Git blame + commit history | "Who wrote this and why?" |
-| `check_breaking_changes` | Branch vs main comparison | Before refactoring |
+| Tool | Description | Use Case |
+|------|-------------|----------|
+| `get_recent_diff_context` | Diffs formatted for LLM context windows | "What changed recently?" |
+| `find_expert_for_file` | Git blame + commit history analysis | "Who wrote this and why?" |
+| `check_breaking_changes` | Feature branch vs main comparison | Before refactoring |
 
-### 🧪 TestRig
+### TestRig
 
-| Tool | What it does | When you'd use it |
-|------|-------------|-------------------|
-| `run_targeted_tests` | pytest/jest/vitest on modified files | After AI writes code |
+| Tool | Description | Use Case |
+|------|-------------|----------|
+| `run_targeted_tests` | Run pytest/jest/vitest on modified files | After AI writes code |
 | `parse_failure_stacktrace` | Filtered, AI-ready stack traces | When tests fail |
 
-### 📸 Visual Debug
+### Visual Debug
 
-| Tool | What it does | When you'd use it |
-|------|-------------|-------------------|
-| `capture_error_screenshot` | Screenshot → Cloudinary → URL | UI bugs, visual regressions |
+| Tool | Description | Use Case |
+|------|-------------|----------|
+| `capture_error_screenshot` | Screenshot to Cloudinary to URL | UI bugs, visual regressions |
 
 ---
 
 ## Demo
 
-> **Scenario:** "The user API is returning 500. Fix it."
+**Scenario:** "The user API is returning 500. Fix it."
 
 ```
 >>> Developer: The user API is returning 500. Fix it.
 
 >>> Cursor: Let me investigate. I'll check the container logs.
     [calls get_container_logs("user-api", 50)]
-    → ERROR: column "role" does not exist in table "users"
+    -> ERROR: column "role" does not exist in table "users"
 
 >>> Cursor: The DB schema is missing a column. Let me check.
     [calls inspect_db_schema()]
-    → users: id, email, name, created_at (no 'role' column)
+    -> users: id, email, name, created_at (no 'role' column)
 
 >>> Cursor: Found it. I'll create the migration and fix the middleware.
-    → ALTER TABLE users ADD COLUMN role VARCHAR(20)
-    → Fixed: src/auth/middleware.py:15
+    -> ALTER TABLE users ADD COLUMN role VARCHAR(20)
+    -> Fixed: src/auth/middleware.py:15
 
     [calls run_targeted_tests("src/auth/")]
-    → 3 tests passed, 0 failures
+    -> 3 tests passed, 0 failures
 
->>> Cursor: One more thing — let me check Snowflake.
+>>> Cursor: One more thing -- let me check Snowflake.
     [calls inspect_snowflake_schema()]
-    → Snowflake users table also missing 'role' — flagging for sync
+    -> Snowflake users table also missing 'role' -- flagging for sync
 
 >>> Cursor: Fixed. Migration, middleware, tests pass, Snowflake flagged.
 ```
@@ -138,10 +138,7 @@ go build -o devpulse
 
 ### 3. Connect your editor
 
-<details>
-<summary><strong>Cursor</strong></summary>
-
-Add to `~/.cursor/mcp.json`:
+**Cursor** -- Add to `~/.cursor/mcp.json`:
 
 ```json
 {
@@ -153,12 +150,8 @@ Add to `~/.cursor/mcp.json`:
   }
 }
 ```
-</details>
 
-<details>
-<summary><strong>Claude Code</strong></summary>
-
-Add to Claude Code MCP config:
+**Claude Code** -- Add to Claude Code MCP config:
 
 ```json
 {
@@ -170,12 +163,8 @@ Add to Claude Code MCP config:
   }
 }
 ```
-</details>
 
-<details>
-<summary><strong>Windsurf</strong></summary>
-
-Add to Windsurf MCP config:
+**Windsurf** -- Add to Windsurf MCP config:
 
 ```json
 {
@@ -187,12 +176,8 @@ Add to Windsurf MCP config:
   }
 }
 ```
-</details>
 
-<details>
-<summary><strong>Zed</strong></summary>
-
-Add to Zed settings:
+**Zed** -- Add to Zed settings:
 
 ```json
 {
@@ -204,21 +189,20 @@ Add to Zed settings:
   }
 }
 ```
-</details>
 
 ### 4. Start using it
 
-Open Cursor (or your editor). Ask it to fix something. It will automatically discover and use DevPulse tools.
+Open your editor. Ask it to fix something. It will automatically discover and use DevPulse tools.
 
 ---
 
 ## Configuration
 
-DevPulse works out of the box with Docker. For additional features, set these environment variables:
+DevPulse works out of the box with Docker. For additional features, set these environment variables.
 
-### Docker (no config needed)
+### Docker
 
-Connects to local Docker socket automatically.
+No configuration needed. Connects to local Docker socket automatically.
 
 ### PostgreSQL
 
@@ -246,7 +230,7 @@ export SNOWFLAKE_SCHEMA=PUBLIC
 export CLOUDINARY_URL=cloudinary://1234567890:xxxxxxxxxxxxx@your_cloud_name
 ```
 
-> **Free tier:** 25GB storage, 25GB bandwidth/month. More than enough.
+Free tier: 25GB storage, 25GB bandwidth/month. More than enough.
 
 ### System Health
 
@@ -265,7 +249,7 @@ export HEALTH_WARN_RAM=85         # RAM % threshold
 ```
 $ ./devpulse --transport stdio
 DevPulse MCP server running (stdio transport)
-Registered 9 tools:
+Registered 11 tools:
   - get_container_logs
   - inspect_db_schema
   - inspect_snowflake_schema
@@ -296,30 +280,30 @@ Armed with real infrastructure data, the AI writes correct fixes. First try.
 ## Architecture
 
 ```
-                    ┌─────────────────────────────────┐
-                    │         DevPulse MCP Server      │
-                    │              (Go)                 │
-                    ├─────────────────────────────────┤
-                    │                                  │
-  AI Editor ───────►│  ┌────────────┐  ┌───────────┐ │
-  (stdio/SSE)       │  │ DevOps     │  │ GitPulse  │ │
-                    │  │ Bridge     │  │           │ │
-                    │  │            │  │ diff      │ │──► git
-                    │  │ logs       │──│──► docker  │ │
-                    │  │ schema     │──│──► postgres│ │
-                    │  │ snowflake  │──│──► snowflake│ │
-                    │  │ health     │──│──► psutil  │ │
-                    │  │ restart    │──│──► docker  │ │
-                    │  └────────────┘  └───────────┘ │
-                    │                                  │
-                    │  ┌────────────┐  ┌───────────┐ │
-                    │  │ TestRig    │  │ Visual    │ │
-                    │  │            │  │ Debug     │ │
-                    │  │ run_tests  │──│──► pytest  │ │
-                    │  │ parse_trace│  │ capture   │──│──► screencapture
-                    │  └────────────┘  │ upload    │──│──► cloudinary
-                    │                  └───────────┘ │
-                    └─────────────────────────────────┘
+                      +-----------------------------------+
+                      |        DevPulse MCP Server        |
+                      |              (Go)                 |
+                      +-----------------------------------+
+                      |                                   |
+  AI Editor -------->|  +-----------+  +------------+    |
+  (stdio/SSE)        |  | DevOps    |  | GitPulse   |    |
+                      |  | Bridge    |  |            |    |
+                      |  |           |  | diff       |---> git
+                      |  | logs      |---> docker     |    |
+                      |  | schema    |---> postgres   |    |
+                      |  | snowflake |---> snowflake  |    |
+                      |  | health    |---> psutil     |    |
+                      |  | restart   |---> docker     |    |
+                      |  +-----------+  +------------+    |
+                      |                                   |
+                      |  +-----------+  +------------+    |
+                      |  | TestRig   |  | Visual     |    |
+                      |  |           |  | Debug      |    |
+                      |  | run_tests |---> pytest     |    |
+                      |  | parse     |  | capture    |---> screencapture
+                      |  | _trace    |  | upload     |---> cloudinary
+                      |  +-----------+  +------------+    |
+                      +-----------------------------------+
 ```
 
 ---
@@ -343,42 +327,44 @@ Armed with real infrastructure data, the AI writes correct fixes. First try.
 
 ## Safety
 
-DevPulse is designed with safety as a first-class concern:
-
 | Guard | Description |
 |-------|-------------|
-| 🔒 Read-only DB | All database queries are SELECT only — no mutations |
-| 🔒 No force-push | Git operations never push, force-push, or amend |
-| 🔒 Confirm restart | `restart_service` requires explicit user confirmation |
-| 🔒 No exec | We don't exec into containers — logs only |
-| 🔒 Audit trail | All tool calls logged locally for review |
-| 🔒 No secrets | API keys stay in env vars, never logged or transmitted |
+| Read-only DB | All database queries are SELECT only. No mutations. |
+| No force-push | Git operations never push, force-push, or amend. |
+| Confirm restart | `restart_service` requires explicit user confirmation. |
+| No exec | We do not exec into containers. Logs only. |
+| Audit trail | All tool calls logged locally for review. |
+| No secrets | API keys stay in env vars. Never logged or transmitted. |
 
 ---
 
 ## FAQ
 
-**Q: Does this work with VS Code?**
-A: DevPulse uses the MCP protocol. VS Code doesn't support MCP natively yet, but extensions like Continue.dev can bridge the gap.
+**Does this work with VS Code?**
 
-**Q: Does it send my code to the cloud?**
-A: No. Everything runs locally. DevPulse connects to local Docker, local Postgres, local Git. The only external call is Cloudinary (for screenshot uploads, which you can disable).
+DevPulse uses the MCP protocol. VS Code does not support MCP natively yet, but extensions like Continue.dev can bridge the gap.
 
-**Q: What if I don't have Docker/Postgres/Snowflake?**
-A: DevPulse works with whatever you have. No Docker? Skip those tools. No Snowflake? Skip that too. The tools are discovered dynamically.
+**Does it send my code to the cloud?**
 
-**Q: Can I add custom tools?**
-A: Yes. DevPulse is built on the open MCP standard. You can extend it with your own tools.
+No. Everything runs locally. DevPulse connects to local Docker, local Postgres, local Git. The only external call is Cloudinary for screenshot uploads, which you can disable by not setting `CLOUDINARY_URL`.
+
+**What if I do not have Docker/Postgres/Snowflake?**
+
+DevPulse works with whatever you have. No Docker? Skip those tools. No Snowflake? Skip that too. The tools are discovered dynamically based on what is configured.
+
+**Can I add custom tools?**
+
+Yes. DevPulse is built on the open MCP standard. You can extend it with your own tools by implementing the MCP tool interface.
 
 ---
 
 ## Contributing
 
-Contributions welcome! Here's how:
+Contributions are welcome.
 
-1. Fork the repo
+1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/my-tool`)
-3. Commit your changes (`git commit -m 'Add my-tool'`)
+3. Commit your changes (`git commit -m "Add my-tool"`)
 4. Push to the branch (`git push origin feature/my-tool`)
 5. Open a Pull Request
 
